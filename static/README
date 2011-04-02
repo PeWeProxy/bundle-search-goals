@@ -1,0 +1,9 @@
+Put your static files here - javascripts, images, css files etc. These files will be served by proxy.
+
+If you need to reference these files, use
+
+http://proxyserver:port/FileSender/
+
+For example:
+
+http://${baseurl}/FileSender/javascripts/myscript.js

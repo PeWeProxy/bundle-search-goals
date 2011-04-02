@@ -1,0 +1,24 @@
+# creates empty rakefile with name and class name written 
+
+require 'date'
+
+NAME = "meno_migracie.rb"
+CLASS_NAME = "meno triedy"
+
+namespace :createMigration do
+
+  task :createFile do
+        date = Time.now
+        wholeName = "#{date.year}-#{date.month-1}-#{date.day}_#{date.hour}-#{date.min}_#{NAME}"
+	file = File.new("#{wholeName}", "w+")
+
+        file.puts("class #{CLASS_NAME} < ActiveRecord::Migration")
+        file.puts("  def")
+        file.puts("")
+        file.puts("  end")
+        file.puts("end")
+  end
+  
+end
+
+task :default => ["createMigration:createFile"]

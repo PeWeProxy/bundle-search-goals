@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plugin SYSTEM "PluginConfiguration.dtd">
+<plugin>
+  <name>SamplePlugin</name>
+  <classLocation/>
+  <className>sk.fiit.peweproxy</className>
+  <libraries>
+    <lib>apache-commons.jar</lib>
+  </libraries>
+  <types>
+    <type>RequestProcessingPlugin</type>
+    <type>ResponseProcessingPlugin</type>
+  </types>
+  <parameters>
+    <param name="sample">${baseurl}/javascripts/sample.js</param>
+  </parameters>
+</plugin>
