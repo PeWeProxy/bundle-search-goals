@@ -8,10 +8,9 @@ public class SearchGoalsClientInjectorPlugin extends JavaScriptInjectingProcessi
 	
 	public ResponseProcessingActions processResponse(ModifiableHttpResponse response) {
 		if (response.getServicesHandle().isServiceAvailable(ModifiableSearchResultService.class)){
-		return super.processResponse(response);
-		} else {
-			return ResponseProcessingActions.PROCEED;
+			super.processResponse(response);
 		}
+		return ResponseProcessingActions.PROCEED;
 	}
 	
 }
