@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plugin SYSTEM "PluginConfiguration.dtd">
+<plugin>
+	<name>SearchGoalsClientInjectorPlugin</name>
+	<classLocation/>
+	<className>sk.fiit.rabbit.adaptiveproxy.plugins.services.searchgoals.SearchGoalsClientInjectorPlugin</className>
+	<libraries>
+  	</libraries>
+	<types>
+		<type>ResponseProcessingPlugin</type>
+	</types>
+	<parameters>
+		<param name="scriptUrl">${plugins-core:proxyurl}/FileSender/public/searchGoals.js</param>
+		<param name="additionalHTML">
+<![CDATA[
+		<style type="text/css">
+		#__ap_search_goals{
+			background-image: url("${plugins-core:proxyurl}/FileSender/public/search_goals/background.png");
+			height: 236px;
+			padding: 20px 20px 20px 40px;
+			position: fixed;
+			right: 0;
+			width: 293px;
+			font-size: 14px;
+			font-family: "Trebuchet MS", "Trebuchet", "Verdana", "Arial";
+			display: none;
+			background-repeat: no-repeat;
+		}
+		
+		#__ap_search_goals *{
+			border: 0;
+			color: #222222;
+			text-align: left;
+		}
+
+		#__ap_search_goals.closed{
+			background-image: url("${plugins-core:proxyurl}/FileSender/public/search_goals/background_closed.png");
+		}
+
+		#__ap_search_goals span.__ap_search_goals_heading{
+			font-size: 17px;
+			float: left;
+			margin-left: 10px;
+			margin-top: 3px;
+		}
+
+		#__ap_search_goals_input_container{
+			background-image: url("${plugins-core:proxyurl}/FileSender/public/search_goals/text_field.png");
+			clear: both;
+			float: left;
+			height: 26px;
+			margin-top: 10px;
+			padding: 7px;
+			width: 283px;
+		}
+
+		#__ap_search_goals_input_container input{
+			background: none;
+			border: none;
+			font-family: "Trebuchet MS", "Trebuchet", "Verdana", "Arial";
+			font-size: 20px;
+			width: 250px;
+			float: left;
+		}
+
+		#__ap_search_goals_input_container a{
+			margin-top: 2px;
+			margin-left: 8px;
+			float: left;
+		}
+		.__ap_search_goals_defaulttext_gray {
+			color: #cccccc !important;
+		}
+		#__ap_search_goals_recent_goals{
+			clear: both;
+			float: left;
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+		#__ap_search_goals_recent_goals li{
+			margin-top: 10px;
+		}
+		#__ap_search_goals_recent_goals li a{
+			color: #9f952a;
+		}
+		#__ap_search_goals_recent_goals li a:hover{
+			color: #cabb1c;
+		}
+		#__ap_search_goals_switch{
+			position: absolute;
+			left: 7px;
+			top: 60px;
+		}
+		#__ap_search_goals_switch{
+			display: block;
+			background-position: left;
+			width: 22px;
+			height: 146px;
+		}
+		#__ap_search_goals_switch.opened{
+			background-image: url("${plugins-core:proxyurl}/FileSender/public/search_goals/close_button.png");
+		}
+		#__ap_search_goals_switch.opened:hover{
+			background-position: right;
+		}
+		#__ap_search_goals_switch.closed{
+			background-image: url("${plugins-core:proxyurl}/FileSender/public/search_goals/open_button.png");
+		}
+		#__ap_search_goals_switch.closed:hover{
+			background-position: right;
+		}
+	</style>
+	
+	<div id="__ap_search_goals">
+		<a href="#" id="__ap_search_goals_switch" class="opened"></a>
+		<img src="${plugins-core:proxyurl}/FileSender/public/search_goals/tag_icon.png" alt="tag icon" style="float:left"/>
+		<span class="__ap_search_goals_heading">Aký je cieľ vášho vyhľadávania?</span>
+		<div id="__ap_search_goals_input_container">
+			<input type="text" title="Sem vložte váš cieľ..."/>
+			<a href="#" onclick="return false;"><img src="${plugins-core:proxyurl}/FileSender/public/search_goals/tick.png" alt="tick" /></a>
+		</div>
+		<div style="margin-top: 15px;float:left;width: 100%;">Môžete využiť nedávne ciele vyhľadávania:</div>
+		<ul id="__ap_search_goals_recent_goals">
+			<li><a href="#" onclick="return false">Chcem si adpotovať slona</a></li>
+			<li><a href="#" onclick="return false">Potrebujem zistiť, či slony spia postojačky</a></li>
+			<li><a href="#" onclick="return false">Chcem zistiť ako chameleón mení farby</a></li>
+			<li><a href="#" onclick="return false">Ako veľké má byť terárium pre gekona?</a></li>
+		</ul>
+	</div>
+]]>
+		</param>
+		
+	</parameters>
+</plugin>
