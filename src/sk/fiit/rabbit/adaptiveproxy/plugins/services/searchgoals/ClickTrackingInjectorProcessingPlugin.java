@@ -21,8 +21,10 @@ import sk.fiit.peweproxy.services.ProxyService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.DatabaseConnectionProviderService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.HtmlDomReaderService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.HtmlDomWriterService;
+import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.HtmlInjectorService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.ModifiableSearchResultService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.SearchResultObject;
+import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.HtmlInjectorService.HtmlPosition;
 import sk.fiit.rabbit.adaptiveproxy.plugins.services.common.SqlUtils;
 
 public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessingPlugin {
@@ -55,35 +57,62 @@ public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessing
 	}
 
 	@Override
-	public ResponseProcessingActions processResponse(
-			ModifiableHttpResponse response) {
+	public ResponseProcessingActions processResponse(ModifiableHttpResponse response) {
+		
 		if(response.getServicesHandle().isServiceAvailable(ModifiableSearchResultService.class)){
-			ModifiableSearchResultService modifiableSearchResultService = response.getServicesHandle().getService(ModifiableSearchResultService.class);
 			
-			ArrayList<SearchResultObject> searchResultObjectList = modifiableSearchResultService.getSearchedData();
-			int resultCount = searchResultObjectList.size();
+			int searchResultID = injectOnclickToSearchResults(response);
 			
+			injectUidSenderScript(response, searchResultID);
 			
-			if (resultCount > 0) {
-				Connection connection = response.getServicesHandle().getService(DatabaseConnectionProviderService.class).getDatabaseConnection();
-
-				String queryString = modifiableSearchResultService.getQueryString().trim();
-				
-				int searchResultID = insertSearchToDB(connection, queryString);
-				
-				for (SearchResultObject searchResultObject : searchResultObjectList){
-					modifiableSearchResultService.deleteResult(1);
-					modifiableSearchResultService.putResult(new SearchResultObject(searchResultObject, "alert('TOTO: log what was clicked')"), resultCount);
-					
-					insertSearchResultToDB(connection, searchResultObject, searchResultID);
-					
-				}
-				
-				SqlUtils.close(connection);
-			}
 		}
 		
 		return ResponseProcessingActions.PROCEED;
+	}
+	
+	private int injectOnclickToSearchResults(ModifiableHttpResponse response){
+		
+		int searchResultID = -1;
+		
+		ModifiableSearchResultService modifiableSearchResultService = response.getServicesHandle().getService(ModifiableSearchResultService.class);
+		
+		ArrayList<SearchResultObject> searchResultObjectList = modifiableSearchResultService.getSearchedData();
+		int resultCount = searchResultObjectList.size();
+		
+		
+		if (resultCount > 0) {
+			Connection connection = response.getServicesHandle().getService(DatabaseConnectionProviderService.class).getDatabaseConnection();
+
+			String queryString = modifiableSearchResultService.getQueryString().trim();
+			
+			searchResultID = insertSearchToDB(connection, queryString);
+			
+			for (SearchResultObject searchResultObject : searchResultObjectList){
+				modifiableSearchResultService.deleteResult(1);
+				modifiableSearchResultService.putResult(new SearchResultObject(searchResultObject, "alert('TOTO: log what was clicked')"), resultCount);
+				
+				insertSearchResultToDB(connection, searchResultObject, searchResultID);
+				
+			}
+			
+			SqlUtils.close(connection);
+		}
+		
+		return searchResultID;
+	}
+	
+	private void injectUidSenderScript(ModifiableHttpResponse response, int searchResultID){
+		if (response.getServicesHandle().isServiceAvailable(HtmlInjectorService.class)){
+			HtmlInjectorService htmlInjectionService = response.getServicesHandle().getService(HtmlInjectorService.class);
+			
+			String script = "<script type=\"text/javascript\">\n" +
+					"__ap_register_callback(function() {\n" +
+					"	adaptiveProxyJQuery.post(\"./__ap_searchGoals.html?nologging&action=\", { \"uid\": __peweproxy_uid, \"id\": "+searchResultID+"});\n" +
+					"});\n" +
+					"</script>\n"; 
+			
+			htmlInjectionService.inject(script, HtmlPosition.END_OF_BODY);
+		}
 	}
 
 	private void insertSearchResultToDB(Connection connection, SearchResultObject searchResultObject, int searchResultID){
