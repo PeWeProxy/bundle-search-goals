@@ -106,8 +106,9 @@ public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessing
 			HtmlInjectorService htmlInjectionService = response.getServicesHandle().getService(HtmlInjectorService.class);
 			
 			String script = "<script type=\"text/javascript\">\n" +
+					"var __ap_search_id = " + searchResultID + ";\n" +
 					"__ap_register_callback(function() {\n" +
-					"	adaptiveProxyJQuery.post(\"./__ap_searchGoals.html?nologging&action=\", { \"uid\": __peweproxy_uid, \"id\": "+searchResultID+"});\n" +
+					"	adaptiveProxyJQuery.post(\"./adaptive-proxy/search-goals.html?action=addUID\", { \"uid\": __peweproxy_uid, \"id\": __ap_search_id});\n" +
 					"});\n" +
 					"</script>\n"; 
 			
