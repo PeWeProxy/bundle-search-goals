@@ -118,7 +118,7 @@ public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessing
 			}
 			
 		} catch (SQLException e) {
-			logger.error("Error inserting search result for search id to database");
+			logger.error("Error inserting search to database");
 		}
 		
 		return searchResultID;
