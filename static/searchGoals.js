@@ -25,10 +25,14 @@ __ap_search_goals = function($){
 				$("#__ap_search_goals_switch").removeClass('opened').addClass('closed');
 				$(this).addClass('closed');
 			})
+			$(this).blur();
+			return false;
 		}, function(){
 			$("#__ap_search_goals").removeClass('closed').animate({right: 0}, "fast", function(){
 				$("#__ap_search_goals_switch").removeClass('closed').addClass('opened');
-			})
+			});
+			$(this).blur();
+			return false;
 		});
 		vertical_position.call();
 		$(window).resize(vertical_position);

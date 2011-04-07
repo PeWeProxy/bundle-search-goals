@@ -16,6 +16,7 @@
 		<style type="text/css">
 		#__ap_search_goals{
 			background-image: url("${plugins-core:proxyurl}/FileSender/public/search_goals/background.png");
+			background-position: top;
 			height: 236px;
 			padding: 20px 20px 20px 40px;
 			position: fixed;
@@ -34,7 +35,7 @@
 		}
 
 		#__ap_search_goals.closed{
-			background-image: url("${plugins-core:proxyurl}/FileSender/public/search_goals/background_closed.png");
+			background-position: bottom;
 		}
 
 		#__ap_search_goals span.__ap_search_goals_heading{
