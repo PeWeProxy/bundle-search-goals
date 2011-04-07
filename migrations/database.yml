@@ -1,9 +1,23 @@
-production:
-  adapter: mysql
-  host: localhost
-  port: 3306
-  encoding: utf8
-  username: root
-  password: root
-  database: proxy
+common: &common
+	adapter: mysql
+	host: localhost
+	port: 3306
+	encoding: utf8
 
+evelopment:
+	<<: *common
+	username: proxy
+	password: rabbit
+	database: proxy
+
+staging:
+	<<: *common
+	username: proxy
+	password: peweproxy
+	database: proxy
+
+production:
+	<<: *common
+	username: proxy
+	password: peweproxy
+	database: proxy
