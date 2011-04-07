@@ -46,8 +46,10 @@ namespace :src do
     end
   end
 
-  desc "Compile service definitions of proxy plugin bundle"
+	desc "Compile service definitions of proxy plugin bundle"
   task :defbuild => :defclean do #TODO: clean
+		return
+		#there isn't any service definition in searc-goals bundle
     FileUtils.cp(Dir.glob('src/**/servicedefinitions/*.java'), 'def/');
     Javac.in('.').execute do |javac|
       javac.src = 'def/*.java'
