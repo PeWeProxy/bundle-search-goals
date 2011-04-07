@@ -36,7 +36,7 @@ __ap_search_goals = function($){
 	});
 }(adaptiveProxyJQuery);
 
-function __ap_submit_tag(){
+function __ap_submit_goal(){
 	var t = function($){
 		var input = $("#__ap_search_goals_input_container input");
 		if (input.attr("title") != input.val() && input.val() != ""){
@@ -47,4 +47,10 @@ function __ap_submit_tag(){
 			});
 		}
 	}(adaptiveProxyJQuery);
+}
+
+function __ap_clicked_result(id){
+	var t = function($, id){
+		$.post( "./adaptive-proxy/search-goals.html?action=clickedResult" , {"id" : id});
+	}(adaptiveProxyJQuery, id)
 }

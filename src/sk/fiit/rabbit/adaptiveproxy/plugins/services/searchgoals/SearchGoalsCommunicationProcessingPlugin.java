@@ -3,6 +3,7 @@ package sk.fiit.rabbit.adaptiveproxy.plugins.services.searchgoals;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Map;
 import java.util.Set;
 
@@ -104,6 +105,9 @@ public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcess
 		else if (request.getRequestHeader().getRequestURI().contains("action=setGoal")) {
 			content = setSearchGoal(connection, postData.get("id"), postData.get("uid"), postData.get("goal"));
 		}
+		else if (request.getRequestHeader().getRequestURI().contains("action=clickedResult")){
+			content = addClickedResult(connection, postData.get("id"));
+		}
 		
 		SqlUtils.close(connection);
 		
@@ -112,6 +116,35 @@ public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcess
 		stringService.setContent(content);
 		
 		return httpResponse;
+	}
+
+	private String addClickedResult(Connection connection, String resultID) {
+		
+		int id;
+		
+		try {
+			id = Integer.parseInt(resultID);
+		} catch (NumberFormatException e) {
+			return "FAIL";
+		}
+		
+
+		java.util.Date today = new java.util.Date();
+		String timestamp = new Timestamp(today.getTime()).toString();
+		String formatedTimestamp = timestamp.substring(0, timestamp.indexOf("."));
+		
+		PreparedStatement stmt;
+		try {
+			stmt = connection.prepareStatement("INSERT INTO `searchgoals_clicked_results` (`timestamp`, `id_search_result`) VALUES (?, ?);");
+			stmt.setString(1, formatedTimestamp);
+			stmt.setInt(2, id);
+			
+			stmt.execute();
+		} catch (SQLException e){
+			logger.error("Error inserting click for search result id "+id);
+			return "FAIL";
+		}
+		return "OK";
 	}
 
 	private String setSearchGoal(Connection connection, String searchID, String uid, String goal) {

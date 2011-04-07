@@ -118,7 +118,7 @@
 		<span class="__ap_search_goals_heading">Aký je cieľ vášho vyhľadávania?</span>
 		<div id="__ap_search_goals_input_container">
 			<input type="text" title="Sem vložte váš cieľ..." maxlength="100" />
-			<a href="#" onclick="__ap_submit_tag(); return false;"><img src="${plugins-core:proxyurl}/FileSender/public/search_goals/tick.png" alt="tick" /></a>
+			<a href="#" onclick="__ap_submit_goal(); return false;"><img src="${plugins-core:proxyurl}/FileSender/public/search_goals/tick.png" alt="tick" /></a>
 		</div>
 		<div style="margin-top: 15px;float:left;width: 100%;">Môžete využiť nedávne ciele vyhľadávania:</div>
 		<ul id="__ap_search_goals_recent_goals">

@@ -61,9 +61,9 @@ public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessing
 		
 		if(response.getServicesHandle().isServiceAvailable(ModifiableSearchResultService.class)){
 			
-			int searchResultID = injectOnclickToSearchResults(response);
+			int searchID = injectOnclickToSearchResults(response);
 			
-			injectUidSenderScript(response, searchResultID);
+			injectUidSenderScript(response, searchID);
 			
 		}
 		
@@ -72,7 +72,7 @@ public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessing
 	
 	private int injectOnclickToSearchResults(ModifiableHttpResponse response){
 		
-		int searchResultID = -1;
+		int searchID = -1;
 		
 		ModifiableSearchResultService modifiableSearchResultService = response.getServicesHandle().getService(ModifiableSearchResultService.class);
 		
@@ -85,28 +85,27 @@ public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessing
 
 			String queryString = modifiableSearchResultService.getQueryString().trim();
 			
-			searchResultID = insertSearchToDB(connection, queryString);
+			searchID = insertSearchToDB(connection, queryString);
 			
 			for (SearchResultObject searchResultObject : searchResultObjectList){
+				int searchResultID = insertSearchResultToDB(connection, searchResultObject, searchID);
+				
 				modifiableSearchResultService.deleteResult(1);
-				modifiableSearchResultService.putResult(new SearchResultObject(searchResultObject, "alert('TOTO: log what was clicked')"), resultCount);
-				
-				insertSearchResultToDB(connection, searchResultObject, searchResultID);
-				
+				modifiableSearchResultService.putResult(new SearchResultObject(searchResultObject, "__ap_clicked_result("+searchResultID+")"), resultCount);
 			}
 			
 			SqlUtils.close(connection);
 		}
 		
-		return searchResultID;
+		return searchID;
 	}
 	
-	private void injectUidSenderScript(ModifiableHttpResponse response, int searchResultID){
+	private void injectUidSenderScript(ModifiableHttpResponse response, int searchID){
 		if (response.getServicesHandle().isServiceAvailable(HtmlInjectorService.class)){
 			HtmlInjectorService htmlInjectionService = response.getServicesHandle().getService(HtmlInjectorService.class);
 			
 			String script = "<script type=\"text/javascript\">\n" +
-					"var __ap_search_id = " + searchResultID + ";\n" +
+					"var __ap_search_id = " + searchID + ";\n" +
 					"__ap_register_callback(function() {\n" +
 					"	adaptiveProxyJQuery.post(\"./adaptive-proxy/search-goals.html?action=addUID\", { \"uid\": __peweproxy_uid, \"id\": __ap_search_id});\n" +
 					"});\n" +
@@ -116,23 +115,31 @@ public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessing
 		}
 	}
 
-	private void insertSearchResultToDB(Connection connection, SearchResultObject searchResultObject, int searchResultID){
+	private int insertSearchResultToDB(Connection connection, SearchResultObject searchResultObject, int searchID){
+		int searchResultID = -1;
 		try {
-			PreparedStatement stmt = connection.prepareStatement("INSERT INTO `searchgoals_search_results` (`url`, `heading`, `perex`, `id_search`) VALUES (?, ?, ?, ?);");
+			PreparedStatement stmt = connection.prepareStatement("INSERT INTO `searchgoals_search_results` (`url`, `heading`, `perex`, `id_search`) VALUES (?, ?, ?, ?);", Statement.RETURN_GENERATED_KEYS);
 			
 			stmt.setString(1, searchResultObject.getUrl());
 			stmt.setString(2, searchResultObject.getHeader());
 			stmt.setString(3, searchResultObject.getPerex());
-			stmt.setInt(4, searchResultID);
+			stmt.setInt(4, searchID);
 			
 			stmt.execute();
+			
+			ResultSet set = stmt.getGeneratedKeys(); 
+			
+			if (set.next()){
+				searchResultID = set.getInt(1);
+			}
 		} catch (SQLException e) {
-			logger.error("Error inserting search result for search id "+searchResultID+" to database");
+			logger.error("Error inserting search result for search id "+searchID+" to database");
 		}
+		return searchResultID;
 	}
 	
 	private int insertSearchToDB(Connection connection, String queryString){
-		int searchResultID = -1;
+		int searchID = -1;
 		
 		try {
 			PreparedStatement stmt = connection.prepareStatement("INSERT INTO `searchgoals_searches` (`timestamp`, `search_query`) VALUES (?, ?);", Statement.RETURN_GENERATED_KEYS);
@@ -144,14 +151,14 @@ public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessing
 			ResultSet set = stmt.getGeneratedKeys();
 			
 			if (set.next()){
-				searchResultID = set.getInt(1);
+				searchID = set.getInt(1);
 			}
 			
 		} catch (SQLException e) {
 			logger.error("Error inserting search to database");
 		}
 		
-		return searchResultID;
+		return searchID;
 	}
 	
 	private String getFormatedTimestamp(){
