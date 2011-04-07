@@ -101,6 +101,9 @@ public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcess
 		if (request.getRequestHeader().getRequestURI().contains("action=addUID")) {
 			content = assignUIDToSearch(connection, postData.get("id"), postData.get("uid"));
 		}
+		else if (request.getRequestHeader().getRequestURI().contains("action=setGoal")) {
+			content = setSearchGoal(connection, postData.get("id"), postData.get("uid"), postData.get("goal"));
+		}
 		
 		SqlUtils.close(connection);
 		
@@ -109,6 +112,31 @@ public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcess
 		stringService.setContent(content);
 		
 		return httpResponse;
+	}
+
+	private String setSearchGoal(Connection connection, String searchID, String uid, String goal) {
+		
+		int id;
+		
+		try {
+			id = Integer.parseInt(searchID);
+		} catch (NumberFormatException e) {
+			return "FAIL";
+		}
+		
+		PreparedStatement stmt;
+		try {
+			stmt = connection.prepareStatement("UPDATE `searchgoals_searches` SET `goal` = ? WHERE `id` = ? AND `uid` = ? LIMIT 1;");
+			stmt.setString(1, goal);
+			stmt.setInt(2, id);
+			stmt.setString(3, uid);
+			
+			stmt.execute();
+		} catch (SQLException e){
+			logger.error("Error setting goal for search id "+id);
+			return "FAIL";
+		}
+		return "OK";
 	}
 
 	private String assignUIDToSearch(Connection connection, String searchID, String uid){

@@ -35,3 +35,16 @@ __ap_search_goals = function($){
 		$("#__ap_search_goals").show();
 	});
 }(adaptiveProxyJQuery);
+
+function __ap_submit_tag(){
+	var t = function($){
+		var input = $("#__ap_search_goals_input_container input");
+		if (input.attr("title") != input.val() && input.val() != ""){
+			__ap_register_callback(function(){
+				$.post("./adaptive-proxy/search-goals.html?action=setGoal", {"uid" : __peweproxy_uid, "id": __ap_search_id, "goal": input.val()}, function(response){
+					alert(response);
+				});
+			});
+		}
+	}(adaptiveProxyJQuery);
+}
