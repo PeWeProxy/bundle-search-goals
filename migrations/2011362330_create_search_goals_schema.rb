@@ -9,7 +9,7 @@ class CreateSearchGoalsSchema < ActiveRecord::Migration
       t.string :goal, :limit => 100
     end
 
-    add_index :searchgoals_searches, :uid, [:id, :uid]
+    add_index :searchgoals_searches, :uid
 
     create_table :searchgoals_search_results do |t|
       t.integer :id, :limit => 11
