@@ -165,7 +165,6 @@ public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcess
 			stmt = connection.prepareStatement("SELECT DISTINCT `goal` FROM `searchgoals_searches` WHERE `uid` LIKE ? AND `goal` IS NOT NULL ORDER BY `timestamp` DESC LIMIT ?;");
 			stmt.setString(1, uid);
 			stmt.setInt(2, goalCount);
-			System.err.println("AAAAAAAAA NOLS: "+uid+", "+goalCount);
 			stmt.execute();
 			
 			ResultSet rs = stmt.getResultSet();
