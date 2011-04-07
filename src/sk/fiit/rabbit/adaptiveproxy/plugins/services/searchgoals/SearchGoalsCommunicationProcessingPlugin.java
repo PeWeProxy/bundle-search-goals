@@ -2,12 +2,17 @@ package sk.fiit.rabbit.adaptiveproxy.plugins.services.searchgoals;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import sk.fiit.peweproxy.headers.RequestHeader;
 import sk.fiit.peweproxy.headers.ResponseHeader;
@@ -95,18 +100,23 @@ public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcess
 			HttpMessageFactory messageFactory) {
 		
 
-		Map<String, String> postData = request.getServicesHandle().getService(PostDataParserService.class).getPostData();
 		String content = "UNKNOWN_ACTION";
 		Connection connection = request.getServicesHandle().getService(DatabaseConnectionProviderService.class).getDatabaseConnection();
 
-		if (request.getRequestHeader().getRequestURI().contains("action=addUID")) {
-			content = assignUIDToSearch(connection, postData.get("id"), postData.get("uid"));
-		}
-		else if (request.getRequestHeader().getRequestURI().contains("action=setGoal")) {
-			content = setSearchGoal(connection, postData.get("id"), postData.get("uid"), postData.get("goal"));
-		}
-		else if (request.getRequestHeader().getRequestURI().contains("action=clickedResult")){
-			content = addClickedResult(connection, postData.get("id"));
+		if (request.getRequestHeader().getRequestURI().contains("action=getLastGoals")){
+			Map<String,String> getParams = getGETParameters(request.getRequestHeader().getRequestURI());
+			content = getLastGoals(connection, getParams.get("uid"), getParams.get("count"));
+		} else {
+			Map<String, String> postData = request.getServicesHandle().getService(PostDataParserService.class).getPostData();
+			if (request.getRequestHeader().getRequestURI().contains("action=addUID")) {
+				content = assignUIDToSearch(connection, postData.get("id"), postData.get("uid"));
+			}
+			else if (request.getRequestHeader().getRequestURI().contains("action=setGoal")) {
+				content = setSearchGoal(connection, postData.get("id"), postData.get("uid"), postData.get("goal"));
+			}
+			else if (request.getRequestHeader().getRequestURI().contains("action=clickedResult")){
+				content = addClickedResult(connection, postData.get("id"));
+			}
 		}
 		
 		SqlUtils.close(connection);
@@ -116,6 +126,59 @@ public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcess
 		stringService.setContent(content);
 		
 		return httpResponse;
+	}
+	
+	private Map<String,String> getGETParameters(String request){
+		Map<String,String> map = new HashMap<String,String>();
+		String attributeName;
+		String attributeValue;
+	    
+		if (!request.contains("?")){
+			request = request.split("?")[1];
+		}
+		
+		for (String pair : request.split("&")) {
+			if (pair.split("=").length == 2) {
+				attributeName = pair.split("=")[0];
+				attributeValue = pair.split("=")[1];
+				map.put(attributeName, attributeValue);
+			}
+		}
+		return map;
+	}
+
+	private String getLastGoals(Connection connection, String uid, String count) {
+		
+		int goalCount;
+		
+		try {
+			goalCount = Integer.parseInt(count);
+		} catch (NumberFormatException e) {
+			return "FAIL";
+		}
+		
+		JSONObject recentGoalsJson = new JSONObject();
+		List<String> recentGoals = new ArrayList<String>();
+		
+		PreparedStatement stmt;
+		try {
+			stmt = connection.prepareStatement("SELECT DISTINCT `goal` FROM `searchgoals_searches` WHERE `uid` LIKE ? AND `goal` IS NOT NULL ORDER BY `timestamp` DESC LIMIT ?;");
+			stmt.setString(1, uid);
+			stmt.setInt(2, goalCount);
+			System.err.println("AAAAAAAAA NOLS: "+uid+", "+goalCount);
+			stmt.execute();
+			
+			ResultSet rs = stmt.getResultSet();
+			while (rs.next()){
+				recentGoals.add(rs.getString(1));
+			}
+			recentGoalsJson.put("recentGoals", recentGoals);
+			
+		} catch (SQLException e) {
+			logger.error("Error selecting last "+goalCount+" goals for user UID "+uid);
+		}
+
+		return recentGoalsJson.toJSONString();
 	}
 
 	private String addClickedResult(Connection connection, String resultID) {
@@ -127,7 +190,6 @@ public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcess
 		} catch (NumberFormatException e) {
 			return "FAIL";
 		}
-		
 
 		java.util.Date today = new java.util.Date();
 		String timestamp = new Timestamp(today.getTime()).toString();

@@ -26,6 +26,7 @@
 			font-family: "Trebuchet MS", "Trebuchet", "Verdana", "Arial";
 			display: none;
 			background-repeat: no-repeat;
+			z-index: 999;
 		}
 		
 		#__ap_search_goals *{
@@ -111,6 +112,28 @@
 		#__ap_search_goals_switch.closed:hover{
 			background-position: right;
 		}
+		#__ap_search_goals_thank_you{
+			display: none;
+		}
+		#__ap_search_goals_thank_you span.__ap_search_goals_s1{
+			border-bottom: 1px solid #9F952A;
+		    clear: both;
+		    display: block;
+		    float: left;
+		    font-size: 20px;
+		    margin-top: 60px;
+		    padding-bottom: 5px;
+		    text-align: center;
+		    width: 290px;
+		}
+		#__ap_search_goals_thank_you span.__ap_search_goals_s2{
+		    color: #9F952A;
+		    display: block;
+		    float: left;
+		    margin-top: 2px;
+		    text-align: right;
+		    width: 290px;
+    	}
 	</style>
 	
 	<div id="__ap_search_goals">
@@ -121,12 +144,13 @@
 			<input type="text" title="Sem vložte váš cieľ..." maxlength="100" />
 			<a href="#" onclick="__ap_submit_goal(); return false;"><img src="${plugins-core:proxyurl}/FileSender/public/search_goals/tick.png" alt="tick" /></a>
 		</div>
-		<div style="margin-top: 15px;float:left;width: 100%;">Môžete využiť nedávne ciele vyhľadávania:</div>
+		<div id="__ap_search_goals_thank_you">
+			<span class="__ap_search_goals_s1"></span>
+			<span class="__ap_search_goals_s2">Ďakujeme</span>
+		</div>
+		<div id="__ap_search_goals_info" style="margin-top: 15px;float:left;width: 100%;">Môžete využiť nedávne ciele vyhľadávania:</div>
 		<ul id="__ap_search_goals_recent_goals">
-			<li><a href="#" onclick="return false">Chcem si adpotovať slona</a></li>
-			<li><a href="#" onclick="return false">Potrebujem zistiť, či slony spia postojačky</a></li>
-			<li><a href="#" onclick="return false">Chcem zistiť ako chameleón mení farby</a></li>
-			<li><a href="#" onclick="return false">Ako veľké má byť terárium pre gekona?</a></li>
+			<!-- will be filled by ajax -->
 		</ul>
 	</div>
 ]]>
