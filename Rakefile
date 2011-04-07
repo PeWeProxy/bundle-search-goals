@@ -48,8 +48,6 @@ namespace :src do
 
 	desc "Compile service definitions of proxy plugin bundle"
   task :defbuild => :defclean do #TODO: clean
-		return
-		#there isn't any service definition in searc-goals bundle
     FileUtils.cp(Dir.glob('src/**/servicedefinitions/*.java'), 'def/');
     Javac.in('.').execute do |javac|
       javac.src = 'def/*.java'
@@ -137,4 +135,4 @@ namespace :after do
   end
 end
 
-task :default => ["src:build", "src:jar", "src:defbuild", "migrations:migrate", "offline:build", "offline:schedule"]
+task :default => ["src:build", "src:jar", "migrations:migrate", "offline:build", "offline:schedule"]
