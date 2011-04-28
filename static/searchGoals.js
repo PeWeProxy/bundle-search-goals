@@ -24,7 +24,7 @@ __ap_search_goals = function($){
 			$("#__ap_search_goals").animate({right: "-322px"}, "fast", function(){
 				$("#__ap_search_goals_switch").removeClass('opened').addClass('closed');
 				$(this).addClass('closed');
-			})
+			});
 			$(this).blur();
 			return false;
 		}, function(){
@@ -70,8 +70,12 @@ function __ap_submit_goal(){
 					if ($.trim(response) == "OK"){
 						$("#__ap_search_goals_thank_you span.__ap_search_goals_s1").html(search_goal);
 						$("#__ap_search_goals_input_container, #__ap_search_goals_info, #__ap_search_goals_recent_goals").fadeOut("fast", function(){
-							$("#__ap_search_goals_thank_you").fadeIn("fast");
-							$("#__ap_search_goals_switch").click();
+							$("#__ap_search_goals_thank_you").fadeIn("fast", function(){
+								$("#__ap_search_goals").animate({right: "-322px"}, "fast", function(){
+									$("#__ap_search_goals_switch").removeClass('opened').addClass('closed');
+									$(this).addClass('closed');
+								});
+							});
 						});
 					} else {
 						alert("Pri ukladaní nastala chyba, skúste akciu opakovať prosím.");
