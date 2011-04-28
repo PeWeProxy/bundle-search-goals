@@ -71,7 +71,10 @@ function __ap_submit_goal(){
 						$("#__ap_search_goals_thank_you span.__ap_search_goals_s1").html(search_goal);
 						$("#__ap_search_goals_input_container, #__ap_search_goals_info, #__ap_search_goals_recent_goals").fadeOut("fast", function(){
 							$("#__ap_search_goals_thank_you").fadeIn("fast");
+							$("#__ap_search_goals_switch").click();
 						});
+					} else {
+						alert("Pri ukladaní nastala chyba, skúste akciu opakovať prosím.");
 					}
 				});
 			});
