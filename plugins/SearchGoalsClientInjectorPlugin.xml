@@ -10,12 +10,12 @@
 		<type>ResponseProcessingPlugin</type>
 	</types>
 	<parameters>
-		<param name="scriptUrl">${plugins-core:proxyurl}/FileSender/public/searchGoals.js</param>
+		<param name="scriptUrl">${plugins-core:assets-path}/searchGoals.js</param>
 		<param name="additionalHTML">
 <![CDATA[
 		<style type="text/css">
 		#__ap_search_goals{
-			background-image: url("${plugins-core:proxyurl}/FileSender/public/search_goals/background.png");
+			background-image: url("${plugins-core:assets-path}/search_goals/background.png");
 			background-position: top;
 			height: 236px;
 			padding: 20px 20px 20px 40px;
@@ -47,7 +47,7 @@
 		}
 
 		#__ap_search_goals_input_container{
-			background-image: url("${plugins-core:proxyurl}/FileSender/public/search_goals/text_field.png");
+			background-image: url("${plugins-core:assets-path}/search_goals/text_field.png");
 			clear: both;
 			float: left;
 			height: 26px;
@@ -101,13 +101,13 @@
 			height: 146px;
 		}
 		#__ap_search_goals_switch.opened{
-			background-image: url("${plugins-core:proxyurl}/FileSender/public/search_goals/close_button.png");
+			background-image: url("${plugins-core:assets-path}/search_goals/close_button.png");
 		}
 		#__ap_search_goals_switch.opened:hover{
 			background-position: right;
 		}
 		#__ap_search_goals_switch.closed{
-			background-image: url("${plugins-core:proxyurl}/FileSender/public/search_goals/open_button.png");
+			background-image: url("${plugins-core:assets-path}/search_goals/open_button.png");
 		}
 		#__ap_search_goals_switch.closed:hover{
 			background-position: right;
@@ -138,11 +138,11 @@
 	
 	<div id="__ap_search_goals">
 		<a href="#" id="__ap_search_goals_switch" class="opened"></a>
-		<img src="${plugins-core:proxyurl}/FileSender/public/search_goals/tag_icon.png" alt="tag icon" style="float:left"/>
+		<img src="${plugins-core:assets-path}/search_goals/tag_icon.png" alt="tag icon" style="float:left"/>
 		<span class="__ap_search_goals_heading">Aký je cieľ vášho vyhľadávania?</span>
 		<div id="__ap_search_goals_input_container">
 			<input type="text" title="Sem vložte váš cieľ..." maxlength="100" />
-			<a href="#" onclick="__ap_submit_goal(); return false;"><img src="${plugins-core:proxyurl}/FileSender/public/search_goals/tick.png" alt="tick" /></a>
+			<a href="#" onclick="__ap_submit_goal(); return false;"><img src="${plugins-core:assets-path}/search_goals/tick.png" alt="tick" /></a>
 		</div>
 		<div id="__ap_search_goals_thank_you">
 			<span class="__ap_search_goals_s1"></span>
