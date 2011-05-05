@@ -4,7 +4,7 @@ common: &common
  port: 3306
  encoding: utf8
 
-evelopment:
+development:
  <<: *common
  username: proxy
  password: rabbit
