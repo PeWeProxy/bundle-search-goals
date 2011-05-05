@@ -25,7 +25,7 @@ import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.HtmlInjectorServi
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.ModifiableSearchResultService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.SearchResultObject;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.HtmlInjectorService.HtmlPosition;
-import sk.fiit.rabbit.adaptiveproxy.plugins.services.common.SqlUtils;
+import sk.fiit.rabbit.adaptiveproxy.plugins.utils.SqlUtils;
 
 public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessingPlugin {
 

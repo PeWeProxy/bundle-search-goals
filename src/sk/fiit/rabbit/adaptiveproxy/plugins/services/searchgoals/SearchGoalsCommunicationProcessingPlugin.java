@@ -28,7 +28,7 @@ import sk.fiit.peweproxy.services.ProxyService;
 import sk.fiit.peweproxy.services.content.ModifiableStringService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.DatabaseConnectionProviderService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.PostDataParserService;
-import sk.fiit.rabbit.adaptiveproxy.plugins.services.common.SqlUtils;
+import sk.fiit.rabbit.adaptiveproxy.plugins.utils.SqlUtils;
 
 public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcessingPlugin, ResponseProcessingPlugin {
 	
