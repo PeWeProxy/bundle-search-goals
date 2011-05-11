@@ -27,7 +27,7 @@ import sk.fiit.peweproxy.plugins.processing.ResponseProcessingPlugin;
 import sk.fiit.peweproxy.services.ProxyService;
 import sk.fiit.peweproxy.services.content.ModifiableStringService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.DatabaseConnectionProviderService;
-import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.PostDataParserService;
+import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.RequestDataParserService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.utils.SqlUtils;
 
 public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcessingPlugin, ResponseProcessingPlugin {
@@ -107,7 +107,7 @@ public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcess
 			Map<String,String> getParams = getGETParameters(request.getRequestHeader().getRequestURI());
 			content = getLastGoals(connection, getParams.get("uid"), getParams.get("count"));
 		} else {
-			Map<String, String> postData = request.getServicesHandle().getService(PostDataParserService.class).getPostData();
+			Map<String, String> postData = request.getServicesHandle().getService(RequestDataParserService.class).getDataFromPOST();
 			if (request.getRequestHeader().getRequestURI().contains("action=addUID")) {
 				content = assignUIDToSearch(connection, postData.get("id"), postData.get("uid"));
 			}
