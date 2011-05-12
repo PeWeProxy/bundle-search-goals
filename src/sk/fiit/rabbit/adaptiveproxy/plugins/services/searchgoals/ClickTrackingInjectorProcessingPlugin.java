@@ -22,9 +22,9 @@ import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.DatabaseConnectio
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.HtmlDomReaderService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.HtmlDomWriterService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.HtmlInjectorService;
+import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.HtmlInjectorService.HtmlPosition;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.ModifiableSearchResultService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.SearchResultObject;
-import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.HtmlInjectorService.HtmlPosition;
 import sk.fiit.rabbit.adaptiveproxy.plugins.utils.SqlUtils;
 
 public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessingPlugin {
