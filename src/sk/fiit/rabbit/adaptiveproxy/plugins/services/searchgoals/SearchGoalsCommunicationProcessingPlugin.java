@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.json.simple.JSONObject;
+import org.svenson.JSON;
 
 import sk.fiit.peweproxy.headers.RequestHeader;
 import sk.fiit.peweproxy.headers.ResponseHeader;
@@ -178,9 +178,9 @@ public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcess
 				}
 			);
 
-		JSONObject recentGoalsJson = new JSONObject();
+		Map recentGoalsJson = new HashMap();
 		recentGoalsJson.put("recentGoals", recentGoals);
-		return recentGoalsJson.toJSONString();
+		return JSON.defaultJSON().forValue(recentGoalsJson);
 	}
 
 	private String addClickedResult(JdbcTemplate jdbc, String resultID) {
