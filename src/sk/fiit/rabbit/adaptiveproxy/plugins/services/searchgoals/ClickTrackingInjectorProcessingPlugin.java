@@ -25,6 +25,7 @@ import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.HtmlInjectorServi
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.HtmlInjectorService.HtmlPosition;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.ModifiableSearchResultService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.SearchResultObject;
+import sk.fiit.rabbit.adaptiveproxy.plugins.utils.JdbcTemplate;
 import sk.fiit.rabbit.adaptiveproxy.plugins.utils.SqlUtils;
 
 public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessingPlugin {
@@ -79,22 +80,26 @@ public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessing
 		ArrayList<SearchResultObject> searchResultObjectList = modifiableSearchResultService.getSearchedData();
 		int resultCount = searchResultObjectList.size();
 		
+		Connection connection = null;
 		
-		if (resultCount > 0) {
-			Connection connection = response.getServicesHandle().getService(DatabaseConnectionProviderService.class).getDatabaseConnection();
+		if (resultCount > 0 && response.getServicesHandle().isServiceAvailable(DatabaseConnectionProviderService.class)) {
+			try {
+				connection = response.getServicesHandle().getService(DatabaseConnectionProviderService.class).getDatabaseConnection();
+				JdbcTemplate jdbc = new JdbcTemplate(connection);
 
-			String queryString = modifiableSearchResultService.getQueryString().trim();
+				String queryString = modifiableSearchResultService.getQueryString().trim();
 			
-			searchID = insertSearchToDB(connection, queryString);
+				searchID = insertSearchToDB(jdbc, queryString);
 			
-			for (SearchResultObject searchResultObject : searchResultObjectList){
-				int searchResultID = insertSearchResultToDB(connection, searchResultObject, searchID);
-				
-				modifiableSearchResultService.deleteResult(1);
-				modifiableSearchResultService.putResult(new SearchResultObject(searchResultObject, "__ap_clicked_result("+searchResultID+")"), resultCount);
+				for (SearchResultObject searchResultObject : searchResultObjectList){
+					int searchResultID = insertSearchResultToDB(jdbc, searchResultObject, searchID);
+					
+					modifiableSearchResultService.deleteResult(1);
+					modifiableSearchResultService.putResult(new SearchResultObject(searchResultObject, "__ap_clicked_result("+searchResultID+")"), resultCount);
+				}
+			} finally {
+				SqlUtils.close(connection);
 			}
-			
-			SqlUtils.close(connection);
 		}
 		
 		return searchID;
@@ -115,7 +120,10 @@ public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessing
 		}
 	}
 
-	private int insertSearchResultToDB(Connection connection, SearchResultObject searchResultObject, int searchID){
+	private int insertSearchResultToDB(JdbcTemplate jdbc, SearchResultObject searchResultObject, int searchID){
+		int searchResultID = jdbc.insert("INSERT INTO searchgoals_search_results (url, heading, perex, id_search) VALUES (?, ?, ?, ?)", 
+				new Object[] { searchResultObject.getUrl(), searchResultObject.getHeader(), searchResultObject.getPerex(), searchID });
+		/*
 		int searchResultID = -1;
 		try {
 			PreparedStatement stmt = connection.prepareStatement("INSERT INTO `searchgoals_search_results` (`url`, `heading`, `perex`, `id_search`) VALUES (?, ?, ?, ?);", Statement.RETURN_GENERATED_KEYS);
@@ -135,10 +143,14 @@ public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessing
 		} catch (SQLException e) {
 			logger.error("Error inserting search result for search id "+searchID+" to database");
 		}
+		*/
 		return searchResultID;
 	}
 	
-	private int insertSearchToDB(Connection connection, String queryString){
+	private int insertSearchToDB(JdbcTemplate jdbc, String queryString){
+		int searchID = jdbc.insert("INSERT INTO searchgoals_searches (timestamp, search_query) VALUES (?, ?)", 
+				new Object[] { getFormatedTimestamp(), queryString });
+		/*
 		int searchID = -1;
 		
 		try {
@@ -157,7 +169,7 @@ public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessing
 		} catch (SQLException e) {
 			logger.error("Error inserting search to database");
 		}
-		
+		*/
 		return searchID;
 	}
 	

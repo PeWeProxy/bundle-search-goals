@@ -1,11 +1,9 @@
 package sk.fiit.rabbit.adaptiveproxy.plugins.services.searchgoals;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +26,9 @@ import sk.fiit.peweproxy.services.ProxyService;
 import sk.fiit.peweproxy.services.content.ModifiableStringService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.DatabaseConnectionProviderService;
 import sk.fiit.rabbit.adaptiveproxy.plugins.servicedefinitions.RequestDataParserService;
+import sk.fiit.rabbit.adaptiveproxy.plugins.utils.JdbcTemplate;
 import sk.fiit.rabbit.adaptiveproxy.plugins.utils.SqlUtils;
+import sk.fiit.rabbit.adaptiveproxy.plugins.utils.JdbcTemplate.ResultProcessor;
 
 public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcessingPlugin, ResponseProcessingPlugin {
 	
@@ -98,28 +98,33 @@ public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcess
 	@Override
 	public HttpResponse getResponse(ModifiableHttpRequest request,
 			HttpMessageFactory messageFactory) {
-		
-
 		String content = "UNKNOWN_ACTION";
-		Connection connection = request.getServicesHandle().getService(DatabaseConnectionProviderService.class).getDatabaseConnection();
-
-		if (request.getRequestHeader().getRequestURI().contains("action=getLastGoals")){
-			Map<String,String> getParams = getGETParameters(request.getRequestHeader().getRequestURI());
-			content = getLastGoals(connection, getParams.get("uid"), getParams.get("count"));
-		} else {
+		
+		if(request.getServicesHandle().isServiceAvailable(RequestDataParserService.class)) {
 			Map<String, String> postData = request.getServicesHandle().getService(RequestDataParserService.class).getDataFromPOST();
-			if (request.getRequestHeader().getRequestURI().contains("action=addUID")) {
-				content = assignUIDToSearch(connection, postData.get("id"), postData.get("uid"));
-			}
-			else if (request.getRequestHeader().getRequestURI().contains("action=setGoal")) {
-				content = setSearchGoal(connection, postData.get("id"), postData.get("uid"), postData.get("goal"));
-			}
-			else if (request.getRequestHeader().getRequestURI().contains("action=clickedResult")){
-				content = addClickedResult(connection, postData.get("id"));
+		
+			Connection connection = null;
+			
+			if(request.getServicesHandle().isServiceAvailable(DatabaseConnectionProviderService.class)) {
+				try {
+					connection = request.getServicesHandle().getService(DatabaseConnectionProviderService.class).getDatabaseConnection();
+					JdbcTemplate jdbc = new JdbcTemplate(connection);
+		
+					if (request.getRequestHeader().getRequestURI().contains("action=getLastGoals")) {
+						Map<String,String> getParams = getGETParameters(request.getRequestHeader().getRequestURI());
+						content = getLastGoals(jdbc, getParams.get("uid"), getParams.get("count"));
+					} else if (request.getRequestHeader().getRequestURI().contains("action=addUID")) {
+						content = assignUIDToSearch(jdbc, postData.get("id"), postData.get("uid"));
+					} else if (request.getRequestHeader().getRequestURI().contains("action=setGoal")) {
+						content = setSearchGoal(jdbc, postData.get("id"), postData.get("uid"), postData.get("goal"));
+					} else if (request.getRequestHeader().getRequestURI().contains("action=clickedResult")){
+						content = addClickedResult(jdbc, postData.get("id"));
+					}
+				} finally {
+					SqlUtils.close(connection);
+				}
 			}
 		}
-		
-		SqlUtils.close(connection);
 		
 		ModifiableHttpResponse httpResponse = messageFactory.constructHttpResponse(null, "text/html");
 		ModifiableStringService stringService = httpResponse.getServicesHandle().getService(ModifiableStringService.class);
@@ -147,7 +152,7 @@ public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcess
 		return map;
 	}
 
-	private String getLastGoals(Connection connection, String uid, String count) {
+	private String getLastGoals(JdbcTemplate jdbc, String uid, String count) {
 		
 		int goalCount;
 		
@@ -157,32 +162,30 @@ public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcess
 			return "FAIL";
 		}
 		
-		JSONObject recentGoalsJson = new JSONObject();
-		List<String> recentGoals = new ArrayList<String>();
 		
-		PreparedStatement stmt;
-		try {
-			stmt = connection.prepareStatement("SELECT DISTINCT `goal` FROM `searchgoals_searches` WHERE `uid` LIKE ? AND `goal` IS NOT NULL ORDER BY `timestamp` DESC LIMIT ?;");
-			stmt.setString(1, uid);
-			stmt.setInt(2, goalCount);
-			stmt.execute();
-			
-			ResultSet rs = stmt.getResultSet();
-			while (rs.next()){
-				recentGoals.add(rs.getString(1));
-			}
-			recentGoalsJson.put("recentGoals", recentGoals);
-			
-		} catch (SQLException e) {
-			logger.error("Error selecting last "+goalCount+" goals for user UID "+uid);
-		}
+		List<String> recentGoals = jdbc.findAll(
+				"SELECT DISTINCT goal " +
+				"FROM searchgoals_searches " +
+				"WHERE uid LIKE ? AND goal IS NOT NULL " +
+				"ORDER BY `timestamp` DESC " +
+				"LIMIT ?", 
+				new Object[] {uid, goalCount }, 
+				new ResultProcessor<String>() {
+					@Override
+					public String processRow(ResultSet rs) throws SQLException {
+						return rs.getString("goal");
+					}
+				}
+			);
 
+		JSONObject recentGoalsJson = new JSONObject();
+		recentGoalsJson.put("recentGoals", recentGoals);
 		return recentGoalsJson.toJSONString();
 	}
 
-	private String addClickedResult(Connection connection, String resultID) {
+	private String addClickedResult(JdbcTemplate jdbc, String resultID) {
 		
-		int id;
+		Integer id;
 		
 		try {
 			id = Integer.parseInt(resultID);
@@ -193,22 +196,26 @@ public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcess
 		java.util.Date today = new java.util.Date();
 		String timestamp = new Timestamp(today.getTime()).toString();
 		String formatedTimestamp = timestamp.substring(0, timestamp.indexOf("."));
-		
-		PreparedStatement stmt;
-		try {
-			stmt = connection.prepareStatement("INSERT INTO `searchgoals_clicked_results` (`timestamp`, `id_search_result`) VALUES (?, ?);");
-			stmt.setString(1, formatedTimestamp);
-			stmt.setInt(2, id);
-			
-			stmt.execute();
-		} catch (SQLException e){
-			logger.error("Error inserting click for search result id "+id);
-			return "FAIL";
-		}
+		jdbc.insert("INSERT INTO `searchgoals_clicked_results` (`timestamp`, `id_search_result`) VALUES (?, ?)", 
+				new Object[] { formatedTimestamp, id });
 		return "OK";
 	}
 
-	private String setSearchGoal(Connection connection, String searchID, String uid, String goal) {
+	private String setSearchGoal(JdbcTemplate jdbc, String searchID, String uid, String goal) {
+		
+		int id;
+		
+		try {
+			id = Integer.parseInt(searchID);
+		} catch (NumberFormatException e) {
+			return "FAIL";
+		}
+		jdbc.update("UPDATE searchgoals_searches SET goal = ? WHERE id = ? AND uid = ? LIMIT 1",
+				new Object[] { goal, id, uid } );
+		return "OK";
+	}
+
+	private String assignUIDToSearch(JdbcTemplate jdbc, String searchID, String uid){
 		
 		int id;
 		
@@ -218,42 +225,9 @@ public class SearchGoalsCommunicationProcessingPlugin  implements RequestProcess
 			return "FAIL";
 		}
 		
-		PreparedStatement stmt;
-		try {
-			stmt = connection.prepareStatement("UPDATE `searchgoals_searches` SET `goal` = ? WHERE `id` = ? AND `uid` = ? LIMIT 1;");
-			stmt.setString(1, goal);
-			stmt.setInt(2, id);
-			stmt.setString(3, uid);
-			
-			stmt.execute();
-		} catch (SQLException e){
-			logger.error("Error setting goal for search id "+id);
-			return "FAIL";
-		}
-		return "OK";
-	}
+		jdbc.update("UPDATE searchgoals_searches SET uid = ? WHERE id = ? LIMIT 1",
+				new Object[] { uid, id } );
 
-	private String assignUIDToSearch(Connection connection, String searchID, String uid){
-		
-		int id;
-		
-		try {
-			id = Integer.parseInt(searchID);
-		} catch (NumberFormatException e) {
-			return "FAIL";
-		}
-		
-		PreparedStatement stmt;
-		try {
-			stmt = connection.prepareStatement("UPDATE `searchgoals_searches` SET `uid` = ? WHERE `id` = ? LIMIT 1;");
-			stmt.setString(1, uid);
-			stmt.setInt(2, id);
-			
-			stmt.execute();
-		} catch (SQLException e){
-			logger.error("Error updating uid for search id "+id);
-			return "FAIL";
-		}
 		return "OK";
 	}
 	
