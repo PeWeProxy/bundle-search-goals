@@ -91,7 +91,7 @@ public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessing
 					int searchResultID = insertSearchResultToDB(jdbc, searchResultObject, searchID);
 					
 					modifiableSearchResultService.deleteResult(1);
-					modifiableSearchResultService.putResult(new SearchResultObject(searchResultObject, "__ap_clicked_result("+searchResultID+")"), resultCount);
+					modifiableSearchResultService.putResult(new SearchResultObject(searchResultObject, "peweproxy.modules.searchgoals.clicked_result("+searchResultID+")"), resultCount);
 				}
 			} finally {
 				SqlUtils.close(connection);
@@ -102,14 +102,17 @@ public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessing
 	}
 	
 	private void injectUidSenderScript(ModifiableHttpResponse response, int searchID){
+		
 		if (response.getServicesHandle().isServiceAvailable(HtmlInjectorService.class)){
 			HtmlInjectorService htmlInjectionService = response.getServicesHandle().getService(HtmlInjectorService.class);
 			
 			String script = "<script type=\"text/javascript\">\n" +
+					"<![CDATA[\n" +
 					"var __ap_search_id = " + searchID + ";\n" +
-					"__ap_register_callback(function() {\n" +
-					"	adaptiveProxyJQuery.post(\"./adaptive-proxy/search-goals.html?action=addUID\", { \"uid\": __peweproxy_uid, \"id\": __ap_search_id});\n" +
+					"peweproxy.on_uid_ready(function() {\n" +
+					"	peweproxy.jQuery.post(\"./adaptive-proxy/search-goals.html?action=addUID\", { \"uid\": peweproxy.uid, \"id\": __ap_search_id});\n" +
 					"});\n" +
+					"]]>" +
 					"</script>\n"; 
 			
 			htmlInjectionService.inject(script, HtmlPosition.END_OF_BODY);

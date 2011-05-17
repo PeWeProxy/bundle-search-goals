@@ -1,4 +1,4 @@
-__ap_search_goals = function($){
+peweproxy.register_module('searchgoals', function($) {
 
 	var vertical_position = function(){
 		$("#__ap_search_goals").css('top',$(window).height()/2 - $("#__ap_search_goals").height()/2 - 30)
@@ -17,7 +17,7 @@ __ap_search_goals = function($){
 			}
 		}).val("").blur().keydown(function(key){
 			if (key.keyCode == 13){
-				__ap_submit_goal();
+				peweproxy.modules.searchgoals.submit_goal();
 			}
 		});
 		$("#__ap_search_goals_switch").toggle(function(){
@@ -35,38 +35,34 @@ __ap_search_goals = function($){
 			return false;
 		});
 
-		__ap_register_callback(function(){
-			var f = function($){
-				$.getJSON("./adaptive-proxy/search-goals.html", {action : "getLastGoals", uid : __peweproxy_uid, count : 4}, function(data){
-					var recentGoal;
-					for (index in data.recentGoals){
-						recentGoal = $.trim(data.recentGoals[index]);
-						if (recentGoal == null || recentGoal == "null"){
-							continue;
-						}
-						$("#__ap_search_goals_recent_goals").append('<li><a href="#" onclick="__ap_search_goal_insert(adaptiveProxyJQuery(this).html()); return false">'+recentGoal+'</a></li>');
+		peweproxy.on_uid_ready(function(){
+			$.getJSON("./adaptive-proxy/search-goals.html", {action : "getLastGoals", uid : peweproxy.uid, count : 4}, function(data){
+				var recentGoal;
+				for (index in data.recentGoals){
+					recentGoal = $.trim(data.recentGoals[index]);
+					if (recentGoal == null || recentGoal == "null"){
+						continue;
 					}
-				})
-			}(adaptiveProxyJQuery);
+					$("#__ap_search_goals_recent_goals").append('<li><a href="#" onclick="peweproxy.modules.searchgoals.search_goal_insert(peweproxy.jQuery(this).html()); return false">'+recentGoal+'</a></li>');
+				}
+			})
 		});
 
 		vertical_position.call();
 		$(window).resize(vertical_position);
 		$("#__ap_search_goals").show();
 	});
-}(adaptiveProxyJQuery);
 
-function __ap_search_goal_insert(goal){
-	adaptiveProxyJQuery("#__ap_search_goals_input_container input").removeClass("__ap_search_goals_defaulttext_gray").val(goal);
-}
-
-function __ap_submit_goal(){
-	var t = function($){
+	this.search_goal_insert = function(goal){
+		$("#__ap_search_goals_input_container input").removeClass("__ap_search_goals_defaulttext_gray").val(goal);
+	}
+	
+	this.submit_goal = function(){
 		var input = $("#__ap_search_goals_input_container input");
 		var search_goal = input.val();
 		if (input.attr("title") != search_goal && search_goal != ""){
-			__ap_register_callback(function(){
-				$.post("./adaptive-proxy/search-goals.html?action=setGoal", {"uid" : __peweproxy_uid, "id": __ap_search_id, "goal": search_goal}, function(response){
+			peweproxy.on_uid_ready(function(){
+				$.post("./adaptive-proxy/search-goals.html?action=setGoal", {"uid" : peweproxy.uid, "id": __ap_search_id, "goal": search_goal}, function(response){
 					if ($.trim(response) == "OK"){
 						$("#__ap_search_goals_thank_you span.__ap_search_goals_s1").html(search_goal);
 						$("#__ap_search_goals_input_container, #__ap_search_goals_info, #__ap_search_goals_recent_goals").fadeOut("fast", function(){
@@ -83,11 +79,9 @@ function __ap_submit_goal(){
 				});
 			});
 		}
-	}(adaptiveProxyJQuery);
-}
-
-function __ap_clicked_result(id){
-	var t = function($, id){
+	}
+	
+	this.clicked_result = function(id){
 		$.ajax({
 			type: "POST",
 			async: false,
@@ -95,5 +89,6 @@ function __ap_clicked_result(id){
 			data: {"id" : id}
 		});
 		//$.post( "./adaptive-proxy/search-goals.html?action=clickedResult" , {"id" : id});
-	}(adaptiveProxyJQuery, id)
-}
+	}
+
+});
