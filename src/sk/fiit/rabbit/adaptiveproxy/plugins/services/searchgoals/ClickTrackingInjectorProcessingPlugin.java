@@ -1,10 +1,6 @@
 package sk.fiit.rabbit.adaptiveproxy.plugins.services.searchgoals;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Set;
@@ -123,53 +119,14 @@ public class ClickTrackingInjectorProcessingPlugin implements ResponseProcessing
 	private int insertSearchResultToDB(JdbcTemplate jdbc, SearchResultObject searchResultObject, int searchID){
 		int searchResultID = jdbc.insert("INSERT INTO searchgoals_search_results (url, heading, perex, id_search) VALUES (?, ?, ?, ?)", 
 				new Object[] { searchResultObject.getUrl(), searchResultObject.getHeader(), searchResultObject.getPerex(), searchID });
-		/*
-		int searchResultID = -1;
-		try {
-			PreparedStatement stmt = connection.prepareStatement("INSERT INTO `searchgoals_search_results` (`url`, `heading`, `perex`, `id_search`) VALUES (?, ?, ?, ?);", Statement.RETURN_GENERATED_KEYS);
-			
-			stmt.setString(1, searchResultObject.getUrl());
-			stmt.setString(2, searchResultObject.getHeader());
-			stmt.setString(3, searchResultObject.getPerex());
-			stmt.setInt(4, searchID);
-			
-			stmt.execute();
-			
-			ResultSet set = stmt.getGeneratedKeys(); 
-			
-			if (set.next()){
-				searchResultID = set.getInt(1);
-			}
-		} catch (SQLException e) {
-			logger.error("Error inserting search result for search id "+searchID+" to database");
-		}
-		*/
+		
 		return searchResultID;
 	}
 	
 	private int insertSearchToDB(JdbcTemplate jdbc, String queryString){
 		int searchID = jdbc.insert("INSERT INTO searchgoals_searches (timestamp, search_query) VALUES (?, ?)", 
 				new Object[] { getFormatedTimestamp(), queryString });
-		/*
-		int searchID = -1;
 		
-		try {
-			PreparedStatement stmt = connection.prepareStatement("INSERT INTO `searchgoals_searches` (`timestamp`, `search_query`) VALUES (?, ?);", Statement.RETURN_GENERATED_KEYS);
-			
-			stmt.setString(1, getFormatedTimestamp());
-			stmt.setString(2, queryString);
-			stmt.execute();
-			
-			ResultSet set = stmt.getGeneratedKeys();
-			
-			if (set.next()){
-				searchID = set.getInt(1);
-			}
-			
-		} catch (SQLException e) {
-			logger.error("Error inserting search to database");
-		}
-		*/
 		return searchID;
 	}
 	
